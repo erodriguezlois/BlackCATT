@@ -1,6 +1,25 @@
+![License](https://img.shields.io/badge/License-Research-green)
+
 # BlackCATT: Black-box Collusion Aware Traitor Tracing in Federated Learning
 
 A Flower/PyTorch implementation of **BlackCATT**, an aggregator-side collusion-resistant watermarking scheme for black box traitor tracing in Federated Learning. BlackCATT enables detection and tracing of malicious clients in federated learning systems through unique watermark embedding and verification through Tardos Codes.
+
+Preprint available in arXiv: https://arxiv.org/abs/2602.12138
+
+## Citation
+
+If you use this code in your research, please cite the corresponding paper:
+```bash
+@misc{rodríguezlois2026blackcattblackboxcollusionaware,
+      title={BlackCATT: Black-box Collusion Aware Traitor Tracing in Federated Learning}, 
+      author={Elena Rodríguez-Lois and Fabio Brau and Maura Pintor and Battista Biggio and Fernando Pérez-González},
+      year={2026},
+      eprint={2602.12138},
+      archivePrefix={arXiv},
+      primaryClass={cs.CR},
+      url={https://arxiv.org/abs/2602.12138}, 
+}
+```
 
 ## Overview
 
@@ -85,21 +104,6 @@ Key parameters can be adjusted in:
    ```bash
    jupyter notebook Graphs.ipynb
    ```
-
-## Citation
-
-If you use this code in your research, please cite the corresponding paper:
-```bash
-@misc{rodríguezlois2026blackcattblackboxcollusionaware,
-      title={BlackCATT: Black-box Collusion Aware Traitor Tracing in Federated Learning}, 
-      author={Elena Rodríguez-Lois and Fabio Brau and Maura Pintor and Battista Biggio and Fernando Pérez-González},
-      year={2026},
-      eprint={2602.12138},
-      archivePrefix={arXiv},
-      primaryClass={cs.CR},
-      url={https://arxiv.org/abs/2602.12138}, 
-}
-```
 
 ## Disclaimer
 
