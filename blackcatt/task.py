@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 import torch
 from flwr_datasets import FederatedDataset
-from flwr_datasets.partitioner import IidPartitioner
+from flwr_datasets.partitioner import IidPartitioner, DirichletPartitioner, LinearPartitioner
 from flwr.common import ParametersRecord, array_from_numpy
 from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, Normalize, ToTensor, RandomCrop, RandomHorizontalFlip
@@ -15,10 +15,19 @@ import pickle
 
 fds = None  # Cache FederatedDataset
 
-def load_data(partition_id: int, num_partitions: int, dataset = wm_config.dataset):
+def load_data(partition_id: int, num_partitions: int, dataset = wm_config.dataset, iid = wm_config.iid, iid_beta = wm_config.iid_beta):
     global fds
     # Only initialize `FederatedDataset` once
-    partitioner = IidPartitioner(num_partitions=num_partitions)
+    if iid == True:
+        if wm_config.linear_partitioner == True:
+            partitioner = LinearPartitioner(num_partitions=num_partitions)
+        else:
+            partitioner = IidPartitioner(num_partitions=num_partitions)
+    else:
+        if dataset == "CIFAR10":
+            partitioner = DirichletPartitioner(num_partitions=num_partitions, alpha=iid_beta, partition_by="label")
+        elif dataset == "CIFAR100":
+            partitioner = DirichletPartitioner(num_partitions=num_partitions, alpha=iid_beta, partition_by="fine_label")
     if fds is None:
         if dataset == "CIFAR10":
             """Load partition CIFAR10 data."""
@@ -82,6 +91,9 @@ def train(net, client_state, trainloader, device, max_batches=wm_config.max_batc
     net.train()
     running_loss = 0.0    
     n_batches = 0
+    if wm_config.linear_partitioner == True and wm_config.linear_part_epoch == True:
+        # If there are different number of samples per client, we need to adjust the number of batches to train on
+        max_batches = len(trainloader)
     while(n_batches < max_batches):
         # Iterate over batches
         for batch in trainloader:

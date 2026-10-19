@@ -5,10 +5,17 @@ import torch
 from flwr.client import ClientApp, NumPyClient
 from flwr.common import Context
 from blackcatt.task import load_data, train, update_client, read_parameters, save_parameters
-from blackcatt.wm_task import wm_client, check_metrics
+from blackcatt.wm_task import (
+    wm_client,
+    check_metrics,
+    check_prob_accusation,
+    _start_measurement,
+    _finish_measurement,
+)
 import blackcatt.wm_config as wm_config
 import blackcatt.models as models
 import os
+import numpy as np
 
 # Define Flower Client with unique model copy and client_fn
 class WM_FlowerClient(NumPyClient):
@@ -33,6 +40,8 @@ class WM_FlowerClient(NumPyClient):
             self.client_state.parameters_records["net_parameters"] = read_parameters(self.cid)
 
     def fit(self, parameters, config):
+        if wm_config.measure_computation:
+            training_start = _start_measurement(self.device)
 
         incremental_update, train_loss = train(
             self.net,
@@ -40,6 +49,8 @@ class WM_FlowerClient(NumPyClient):
             self.trainloader,
             self.device,
         )
+        if wm_config.measure_computation:
+            _finish_measurement("local_training", training_start, self.device)
 
         # Return incremental update on the model parameters
         return (
@@ -61,9 +72,12 @@ class WM_FlowerClient(NumPyClient):
         if config["current_round"] % 1 == 0:
             save_parameters(self.cid,self.client_state)
         # For evaluation purposes, we don't need this to run for all rounds / all cids
-        if config["current_round"] % 25 == 0 and self.cid < 10:
+        if config["current_round"] % 25 == 0 and self.cid < min(10,wm_config.n_users-1):
             loss, val_items, accuracy = check_metrics(self.net,self.cid,self.valloader,self.device)
             return loss, val_items, {"accuracy": accuracy}
+        # if config["current_round"] % 50 == 0 and self.cid == 0:
+            # check_prob_accusation(self.net,config["current_round"],self.device)
+            # return 0.0, 1, {"accuracy": 0.0}
         else:
             # flwr still wants to receive something
             return 0.0, 1, {"accuracy": 0.0}
